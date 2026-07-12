@@ -10,6 +10,9 @@ export type FunnelEvent =
   | 'compra_1999'
   | 'upsell_visto'
   | 'compra_27'
+  | 'completo_visto' // oferta O Ninho Completo exibida
+  | 'checkout_completo_iniciado'
+  | 'compra_completo'
   | 'mapa_entregue'
 
 declare global {
@@ -62,6 +65,7 @@ export function initPixels() {
 const META_STANDARD: Partial<Record<FunnelEvent, { name: string; params?: Record<string, unknown> }>> = {
   quiz_start: { name: 'Lead' },
   checkout_1999_iniciado: { name: 'InitiateCheckout', params: { value: 19.99, currency: 'BRL' } },
+  checkout_completo_iniciado: { name: 'InitiateCheckout', params: { value: 67.55, currency: 'BRL' } },
 }
 
 /** Dispara um evento do funil para Meta + TikTok (deduplicado por sessão). */
@@ -93,7 +97,7 @@ function uuid(): string {
 
 export interface PurchaseInput {
   /** produto comprado (define o valor padrão e o dedup fallback) */
-  product: 'mapa' | 'manual'
+  product: 'mapa' | 'manual' | 'completo'
   /** valor REAL pago — dinâmico se houver order bump/upsell */
   value: number
   /** moeda ISO (padrão BRL) */
@@ -192,8 +196,8 @@ async function sendCapiPurchase(input: {
  * O Cakto pode enviar valor/pedido/e-mail na URL de retorno; se não vier,
  * usamos o preço configurado como fallback.
  */
-export function purchaseFromParams(product: 'mapa' | 'manual', params: URLSearchParams): PurchaseInput {
-  const fallback = product === 'mapa' ? 19.99 : 27.99
+export function purchaseFromParams(product: 'mapa' | 'manual' | 'completo', params: URLSearchParams): PurchaseInput {
+  const fallback = product === 'mapa' ? 19.99 : product === 'manual' ? 27.99 : 67.55
   const raw = params.get('value') ?? params.get('valor') ?? params.get('amount')
   // aceita "27,99" ou "27.99"
   const parsed = raw ? Number(raw.replace(',', '.')) : NaN

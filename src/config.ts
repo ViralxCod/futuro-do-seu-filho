@@ -7,6 +7,7 @@ export type Gateway = 'kiwify' | 'hotmart' | 'stripe'
 // ---------- PREENCHA AQUI PARA ATIVAR O CHECKOUT E OS PIXELS ----------
 export const CHECKOUT_URL_MAPA = 'https://pay.cakto.com.br/322er8j_971607' // Mapa — R$ 19,99
 export const CHECKOUT_URL_MANUAL = 'https://pay.cakto.com.br/399isvc_971606' // Manual — ⚠️ está R$ 27,99 no Cakto; a copy promete R$ 27,00
+export const CHECKOUT_URL_COMPLETO = 'https://pay.cakto.com.br/3dcdxzp_977565' // O Ninho Completo — R$ 67,55 (upsell final)
 export const URL_RETORNO_SUCESSO = 'https://futuro-do-seu-filho.vercel.app'
 export const META_PIXEL_ID = '2255954778500790'
 export const TIKTOK_PIXEL_ID = '' // COLE_AQUI o ID do TikTok Pixel
@@ -55,6 +56,12 @@ export const config = {
       anchorPrice: 'R$ 140',
       url: CHECKOUT_URL_MANUAL, // ex.: 'https://pay.kiwify.com.br/YYYYYY'
     },
+    // Degrau 3 — R$ 67,55: O NINHO COMPLETO (programa de 21 dias + biblioteca)
+    completo: {
+      price: 'R$ 67,55',
+      anchorPrice: 'R$ 197',
+      url: CHECKOUT_URL_COMPLETO,
+    },
     // URL de retorno após pagamento — configure ISSO no painel do gateway:
     //   Produto 1 (Mapa 19,99)  → retorno para: https://SEUDOMINIO/obrigada?paid=1
     //   Produto 2 (Manual 27)   → retorno para: https://SEUDOMINIO/mapa?paid2=1
@@ -97,13 +104,14 @@ export const config = {
 } as const
 
 /** Abre o checkout do gateway. Se a URL estiver vazia (modo teste), simula o pagamento. */
-export function openCheckout(product: 'mapa' | 'manual') {
+export function openCheckout(product: 'mapa' | 'manual' | 'completo') {
   const url = config.checkout[product].url
   if (url) {
     window.location.href = url
   } else {
     // MODO TESTE — sem gateway configurado, simula retorno de pagamento aprovado
     const base = import.meta.env.BASE_URL.replace(/\/$/, '')
-    window.location.href = base + (product === 'mapa' ? '/obrigada?paid=1' : '/mapa?paid2=1')
+    const testReturn = { mapa: '/obrigada?paid=1', manual: '/mapa?paid2=1', completo: '/mapa?paid3=1' }[product]
+    window.location.href = base + testReturn
   }
 }

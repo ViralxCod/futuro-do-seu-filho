@@ -27,19 +27,38 @@ Deno.serve(async (req) => {
     // Kiwify:  payload.Customer.email / payload.Product.product_name / payload.order_status
     // Hotmart: payload.data.buyer.email / payload.data.product.name / payload.event
     // Cakto:   payload.customer.email / payload.product.name / payload.status
+    // Cakto costuma enviar em payload.data.customer.email / payload.data.product.name /
+    // payload.data.status; mantemos fallbacks p/ outros gateways e formatos.
     const email: string | undefined =
-      payload?.Customer?.email ?? payload?.data?.buyer?.email ?? payload?.customer?.email ?? payload?.email
+      payload?.Customer?.email ??
+      payload?.data?.buyer?.email ??
+      payload?.data?.customer?.email ??
+      payload?.customer?.email ??
+      payload?.email
     const produtoNome: string =
-      payload?.Product?.product_name ?? payload?.data?.product?.name ?? payload?.product?.name ?? payload?.produto ?? ''
+      payload?.Product?.product_name ??
+      payload?.data?.product?.name ??
+      payload?.data?.offer?.name ??
+      payload?.product?.name ??
+      payload?.offer?.name ??
+      payload?.produto ??
+      ''
     const status: string =
-      payload?.order_status ?? payload?.data?.purchase?.status ?? payload?.status ?? 'aprovada'
-    const valor: number | null = Number(payload?.valor ?? payload?.Commissions?.charge_amount ?? payload?.amount) || null
-    const gatewayId: string | null = payload?.order_id ?? payload?.data?.purchase?.transaction ?? payload?.id ?? null
+      payload?.order_status ?? payload?.data?.purchase?.status ?? payload?.data?.status ?? payload?.status ?? 'aprovada'
+    const valor: number | null =
+      Number(payload?.valor ?? payload?.data?.amount ?? payload?.Commissions?.charge_amount ?? payload?.amount) || null
+    const gatewayId: string | null =
+      payload?.order_id ?? payload?.data?.id ?? payload?.data?.purchase?.transaction ?? payload?.id ?? null
 
     if (!email) return new Response('missing email', { status: 400 })
 
-    const slug = /manual/i.test(produtoNome) ? 'manual' : 'mapa'
-    const aprovada = /paid|approved|aprovad|complete/i.test(status)
+    // O Ninho Completo é o programa completo; Manual é o upsell; Mapa é a base.
+    const slug = /completo|ninho\s*completo/i.test(produtoNome)
+      ? 'completo'
+      : /manual/i.test(produtoNome)
+        ? 'manual'
+        : 'mapa'
+    const aprovada = /paid|approved|aprovad|complete|pago/i.test(status)
 
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
@@ -62,19 +81,17 @@ Deno.serve(async (req) => {
     }
     if (!userId) return new Response('user error', { status: 500 })
 
-    // entitlement: Mapa sempre; Manual se for o upsell
-    const { data: prod } = await admin.from('products').select('id').eq('slug', slug).single()
-    if (prod) {
-      await admin.from('entitlements').upsert(
-        { user_id: userId, product_id: prod.id, origem: 'compra' },
-        { onConflict: 'user_id,product_id' },
-      )
-    }
-    if (slug === 'manual') {
-      const { data: mapa } = await admin.from('products').select('id').eq('slug', 'mapa').single()
-      if (mapa) {
+    // entitlements por degrau: cada compra libera o produto e os anteriores.
+    //   mapa     → [mapa]
+    //   manual   → [mapa, manual]
+    //   completo → [mapa, manual, completo]
+    const slugsToGrant =
+      slug === 'completo' ? ['mapa', 'manual', 'completo'] : slug === 'manual' ? ['mapa', 'manual'] : ['mapa']
+    for (const s of slugsToGrant) {
+      const { data: prod } = await admin.from('products').select('id').eq('slug', s).single()
+      if (prod) {
         await admin.from('entitlements').upsert(
-          { user_id: userId, product_id: mapa.id, origem: 'compra' },
+          { user_id: userId, product_id: prod.id, origem: 'compra' },
           { onConflict: 'user_id,product_id' },
         )
       }

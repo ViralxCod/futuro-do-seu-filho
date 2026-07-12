@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { LiveCounter } from '../components/LiveCounter'
@@ -14,16 +13,6 @@ const bullets = [
 
 export function Landing() {
   const navigate = useNavigate()
-  const [showSticky, setShowSticky] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => {
-      const half = (document.documentElement.scrollHeight - window.innerHeight) * 0.5
-      setShowSticky(window.scrollY > Math.max(200, half))
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   const start = () => {
     track('quiz_start')
@@ -113,20 +102,6 @@ export function Landing() {
       <p className="mt-8 border-t border-white/10 pt-5 text-center text-[13px] leading-relaxed text-fog">
         {config.socialProof.landingReview}
       </p>
-
-      {/* CTA fixo no rodapé após 50% de scroll */}
-      {showSticky && (
-        <motion.div
-          initial={{ y: 90 }}
-          animate={{ y: 0 }}
-          className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[480px] px-4 pb-4 pt-2"
-          style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
-        >
-          <button onClick={start} className="cta shadow-2xl">
-            🔓 DESCOBRIR O FUTURO DO MEU FILHO →
-          </button>
-        </motion.div>
-      )}
     </motion.main>
   )
 }

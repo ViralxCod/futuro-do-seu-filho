@@ -79,7 +79,7 @@ function Section({ show, children }: { show: boolean; children: React.ReactNode 
 export function Mapa() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const { profile, answers, child, paidMapa, paidManual, markPaidManual } = useFunnel()
+  const { profile, answers, child, paidMapa, paidManual, markPaidManual, markPaidCompleto } = useFunnel()
   const [sections, setSections] = useState(1) // revelação progressiva
 
   useEffect(() => {
@@ -89,8 +89,20 @@ export function Mapa() {
       trackPurchase(purchaseFromParams('manual', params))
       track('compra_27') // evento custom do funil (sem Purchase duplicado)
     }
+    if (params.get('paid3') === '1' && paidMapa) {
+      markPaidCompleto()
+      // O Ninho Completo aprovado → Purchase (Pixel + CAPI, uma única vez).
+      trackPurchase(purchaseFromParams('completo', params))
+      track('compra_completo')
+    }
     if (!profile || !paidMapa) {
       navigate(profile ? '/desbloquear' : '/', { replace: true })
+      return
+    }
+    // Oferta O Ninho Completo é uma etapa após o Manual: se ainda não foi
+    // decidida (e não acabou de ser comprada), mostra antes de entregar o Mapa.
+    if (!useFunnel.getState().completoSeen && params.get('paid3') !== '1') {
+      navigate('/completo', { replace: true })
       return
     }
     track('mapa_entregue')

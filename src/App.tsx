@@ -8,6 +8,7 @@ import { Resultado } from './pages/Resultado'
 import { Desbloquear } from './pages/Desbloquear'
 import { Obrigada } from './pages/Obrigada'
 import { Manual } from './pages/Manual'
+import { Completo } from './pages/Completo'
 import { Mapa } from './pages/Mapa'
 import { Ninho } from './pages/Ninho'
 import { NinhoAdmin } from './pages/NinhoAdmin'
@@ -45,6 +46,7 @@ function AnimatedRoutes() {
         <Route path="/desbloquear" element={<Desbloquear />} />
         <Route path="/obrigada" element={<Obrigada />} />
         <Route path="/manual" element={<Manual />} />
+        <Route path="/completo" element={<Completo />} />
         <Route path="/mapa" element={<Mapa />} />
         <Route path="/ninho" element={<Ninho />} />
         <Route path="/ninho/admin" element={<NinhoAdmin />} />

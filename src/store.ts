@@ -21,6 +21,9 @@ interface FunnelState {
   deadline: number | null
   paidMapa: boolean
   paidManual: boolean
+  paidCompleto: boolean
+  /** oferta do O Ninho Completo já exibida e decidida (comprou ou recusou) */
+  completoSeen: boolean
   upsellDeclined: boolean
   startedAt: number | null
   /** escolha na pergunta de compromisso antes da análise */
@@ -39,6 +42,8 @@ interface FunnelState {
   startDeadline: () => void
   markPaidMapa: () => void
   markPaidManual: () => void
+  markPaidCompleto: () => void
+  markCompletoSeen: () => void
   declineUpsell: () => void
   /** Expira o resultado: apaga respostas e perfil (a promessa da copy é real) */
   expire: () => void
@@ -55,6 +60,8 @@ export const useFunnel = create<FunnelState>()(
       deadline: null,
       paidMapa: false,
       paidManual: false,
+      paidCompleto: false,
+      completoSeen: false,
       upsellDeclined: false,
       startedAt: null,
       commitment: null,
@@ -82,6 +89,8 @@ export const useFunnel = create<FunnelState>()(
       },
       markPaidMapa: () => set({ paidMapa: true }),
       markPaidManual: () => set({ paidManual: true }),
+      markPaidCompleto: () => set({ paidCompleto: true, completoSeen: true }),
+      markCompletoSeen: () => set({ completoSeen: true }),
       declineUpsell: () => set({ upsellDeclined: true }),
       expire: () => {
         // Quem já pagou não perde o acesso; quem não pagou perde o resultado.
@@ -97,6 +106,8 @@ export const useFunnel = create<FunnelState>()(
           deadline: null,
           paidMapa: false,
           paidManual: false,
+          paidCompleto: false,
+          completoSeen: false,
           upsellDeclined: false,
           startedAt: null,
         }),

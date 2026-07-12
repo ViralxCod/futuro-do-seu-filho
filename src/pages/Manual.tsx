@@ -29,7 +29,7 @@ export function Manual() {
   const yes = () => openCheckout('manual')
   const no = () => {
     declineUpsell()
-    navigate('/mapa')
+    navigate('/completo')
   }
 
   if (!paidMapa) return null
