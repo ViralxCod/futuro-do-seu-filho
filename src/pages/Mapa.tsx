@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useFunnel } from '../store'
 import { mapaContent, manualContent, scoreFaixa, rodapeCompliance } from '../data/entrega'
 import { connectionScore } from '../lib/scoring'
-import { track } from '../lib/tracking'
+import { track, trackPurchase, purchaseFromParams } from '../lib/tracking'
 import { fill } from '../lib/personalize'
 import { haptic, playTick } from '../lib/sound'
 import { supabase } from '../lib/supabase'
@@ -85,7 +85,9 @@ export function Mapa() {
   useEffect(() => {
     if (params.get('paid2') === '1' && paidMapa) {
       markPaidManual()
-      track('compra_27')
+      // Upsell aprovado → Purchase do Manual (Pixel + CAPI, uma única vez).
+      trackPurchase(purchaseFromParams('manual', params))
+      track('compra_27') // evento custom do funil (sem Purchase duplicado)
     }
     if (!profile || !paidMapa) {
       navigate(profile ? '/desbloquear' : '/', { replace: true })

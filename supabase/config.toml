@@ -2,3 +2,6 @@ project_id = "cxkexrgoagjmdwhcomrx"
 
 [functions.webhook-compra]
 verify_jwt = false
+
+[functions.capi-purchase]
+verify_jwt = false

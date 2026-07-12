@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useFunnel } from '../store'
-import { track } from '../lib/tracking'
+import { track, trackPurchase, purchaseFromParams } from '../lib/tracking'
 
 /**
  * Retorno do pagamento de R$ 19,99.
@@ -18,7 +18,9 @@ export function Obrigada() {
   useEffect(() => {
     if (params.get('paid') === '1' || paidMapa) {
       markPaidMapa()
-      track('compra_1999')
+      // Pagamento aprovado → Purchase (Pixel + CAPI, uma única vez por pedido).
+      trackPurchase(purchaseFromParams('mapa', params))
+      track('compra_1999') // evento custom do funil (sem Purchase duplicado)
       const t = setTimeout(() => navigate('/manual', { replace: true }), 2000)
       return () => clearTimeout(t)
     }
