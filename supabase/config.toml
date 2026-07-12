@@ -1,0 +1,4 @@
+project_id = "cxkexrgoagjmdwhcomrx"
+
+[functions.webhook-compra]
+verify_jwt = false

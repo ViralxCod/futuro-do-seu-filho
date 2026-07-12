@@ -1,0 +1,24 @@
+node_modules
+dist
+*.local
+.vercel
+
+# arquivos locais que nao vao para o repo publico
+*.pdf
+*.skill
+prompt mestre.txt
+PROMPT-CLAUDE-CODE.md
+
+# segredos e documentos de negocio (nunca publicar)
+.env*
+*.envi
+ENTREGA-PRODUTO.md
+funil-gamificado-futuro-do-filho.md
+criativos-6-copys.md
+roteiros-reflexao-fliki.md
+UPGRADE-PREMIUM.md
+AJUSTES-V3.md
+PROMPT-AREA-MEMBROS.md
+PROMPT-GEMINI-VIDEOS.md
+PROMPT-ALTERACOES-V2.md
+criativos-para-gpt-IMPRIMIR.html

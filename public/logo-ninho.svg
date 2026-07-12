@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="340" height="110" viewBox="0 0 340 110" fill="none">
+  <!-- O NINHO — logo horizontal (fundo transparente, para azul-noite #1a1a2e) -->
+  <g stroke="#f0c75e" stroke-width="3" stroke-linecap="round" fill="none">
+    <!-- ninho: 3 traços curvos -->
+    <path d="M18 78 Q50 96 82 78" />
+    <path d="M24 68 Q50 84 76 68" />
+    <path d="M31 59 Q50 71 69 59" />
+    <!-- passarinho decolando: 1 traço contínuo, asas abertas -->
+    <path d="M28 40 Q42 26 50 38 Q54 44 60 40 Q70 32 84 22 Q72 40 62 46 Q54 51 48 46 Q40 40 28 40 Z" stroke-width="2.5" />
+  </g>
+  <g>
+    <text x="104" y="62" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="bold" letter-spacing="2" fill="#faf3e8">O NINHO</text>
+    <text x="106" y="86" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" letter-spacing="5" fill="#f0c75e">ÁREA DA MÃE PRESENTE</text>
+  </g>
+</svg>
