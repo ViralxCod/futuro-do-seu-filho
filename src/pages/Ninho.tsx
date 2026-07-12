@@ -186,7 +186,7 @@ function Dashboard({ session }: { session: Session }) {
             <button onClick={() => navigate('/mapa')} className="cta mt-3 py-3 text-[14px]">Abrir o Manual →</button>
           ) : (
             <button onClick={() => (p.checkout_url ? (window.location.href = p.checkout_url) : openCheckout('manual'))} className="cta mt-3 py-3 text-[14px]">
-              🔒 Desbloquear por {p.preco ?? 'R$ 27'} →
+              🔒 Desbloquear por {p.preco ?? 'R$ 27,99'} →
             </button>
           )}
         </ProductCard>

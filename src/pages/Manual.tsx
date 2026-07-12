@@ -62,12 +62,12 @@ export function Manual() {
         <p className="text-fog">
           <s className="opacity-70">De {config.checkout.manual.anchorPrice}</s> por apenas:
         </p>
-        <p className="font-headline text-6xl font-bold text-gold drop-shadow-[0_0_20px_rgba(240,199,94,0.4)]">+ R$ 27</p>
+        <p className="font-headline text-6xl font-bold text-gold drop-shadow-[0_0_20px_rgba(240,199,94,0.4)]">+ R$ 27,99</p>
         <p className="mt-2 text-[14px] text-mint">✓ Em um clique — sem digitar o cartão de novo</p>
       </div>
 
       <button onClick={yes} className="cta mt-6 py-5">
-        ✅ SIM — QUERO O MAPA + O MANUAL (adicionar por R$ 27) →
+        ✅ SIM — QUERO O MAPA + O MANUAL (adicionar por R$ 27,99) →
       </button>
 
       {/* Botão-não: texto cinza pequeno (custo psicológico de recusar) */}

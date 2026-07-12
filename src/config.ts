@@ -51,7 +51,7 @@ export const config = {
     },
     // Degrau 2 — R$ 27: adiciona o MANUAL (a ação)
     manual: {
-      price: 'R$ 27',
+      price: 'R$ 27,99',
       anchorPrice: 'R$ 140',
       url: CHECKOUT_URL_MANUAL, // ex.: 'https://pay.kiwify.com.br/YYYYYY'
     },
