@@ -12,6 +12,7 @@ import { Completo } from './pages/Completo'
 import { Mapa } from './pages/Mapa'
 import { Ninho } from './pages/Ninho'
 import { NinhoAdmin } from './pages/NinhoAdmin'
+import { Ler } from './pages/Ler'
 import { useFunnel, isExpired } from './store'
 import { initPixels } from './lib/tracking'
 
@@ -50,6 +51,7 @@ function AnimatedRoutes() {
         <Route path="/mapa" element={<Mapa />} />
         <Route path="/ninho" element={<Ninho />} />
         <Route path="/ninho/admin" element={<NinhoAdmin />} />
+        <Route path="/ninho/ler/:slug" element={<Ler />} />
         <Route path="*" element={<Landing />} />
       </Routes>
     </AnimatePresence>

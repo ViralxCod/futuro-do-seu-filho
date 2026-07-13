@@ -173,3 +173,21 @@ input, textarea {
   background-size: 200% 100%;
   animation: barGlow 2.2s linear infinite;
 }
+
+/* ===== Impressão / "Baixar PDF" das páginas de leitura ===== */
+@media print {
+  html, body { background: #ffffff !important; }
+  .no-print { display: none !important; }
+  /* remove o fundo escuro e paddings do app na impressão */
+  main { padding: 0 !important; min-height: 0 !important; background: #ffffff !important; }
+  .print-area section {
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 0 24px 0 !important;
+    break-inside: avoid-page;
+  }
+  .markdown { color: #2b2118 !important; }
+  a { text-decoration: none !important; color: inherit !important; }
+}

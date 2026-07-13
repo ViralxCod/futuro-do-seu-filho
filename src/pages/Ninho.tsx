@@ -6,6 +6,7 @@ import { supabase, type Product, type Profile } from '../lib/supabase'
 import { Logo } from '../components/Logo'
 import { useFunnel } from '../store'
 import { openCheckout } from '../config'
+import { biblioteca } from '../data/biblioteca'
 
 export function Ninho() {
   const navigate = useNavigate()
@@ -172,7 +173,12 @@ function Dashboard({ session }: { session: Session }) {
       return (
         <ProductCard key={p.id} title={child?.name ? `Meu Mapa do ${child.name}` : 'Meu Mapa'} desc={p.descricao} unlocked={has}>
           {has ? (
-            <button onClick={() => navigate('/mapa')} className="cta mt-3 py-3 text-[14px]">Abrir meu Mapa →</button>
+            <div className="mt-3 space-y-2">
+              <button onClick={() => navigate('/mapa')} className="cta py-3 text-[14px]">Abrir meu Mapa →</button>
+              <button onClick={() => navigate('/ninho/ler/mapa')} className="w-full rounded-2xl border border-gold/40 bg-gold/10 py-2.5 text-[13px] font-bold text-gold">
+                📚 Ler os materiais + baixar PDF →
+              </button>
+            </div>
           ) : (
             <button onClick={() => navigate('/')} className="cta mt-3 py-3 text-[14px]">Fazer o teste →</button>
           )}
@@ -195,7 +201,13 @@ function Dashboard({ session }: { session: Session }) {
     return (
       <ProductCard key={p.id} title={p.nome} desc={p.descricao} unlocked={has} soon={p.tipo === 'consulta' && !p.checkout_url}>
         {has ? (
-          <p className="mt-3 text-[13px] text-mint">✓ Liberado</p>
+          biblioteca[p.slug] ? (
+            <button onClick={() => navigate(`/ninho/ler/${p.slug}`)} className="cta mt-3 py-3 text-[14px]">
+              Abrir material + baixar PDF →
+            </button>
+          ) : (
+            <p className="mt-3 text-[13px] text-mint">✓ Liberado</p>
+          )
         ) : p.checkout_url ? (
           <button onClick={() => (window.location.href = p.checkout_url!)} className="cta mt-3 py-3 text-[14px]">
             {p.preco ? `Quero — ${p.preco} →` : 'Quero →'}
