@@ -6,7 +6,7 @@ import { track, trackPurchase, purchaseFromParams } from '../lib/tracking'
 import { markLeadComprou } from '../lib/leads'
 
 /**
- * Retorno do pagamento do Mapa (tripwire — R$ 8,75 ou R$ 24,90 no teste de preço).
+ * Retorno do pagamento do Mapa (R$ 24,90 — preço único).
  * Verificação nesta versão: query param ?paid=1 + localStorage.
  * TODO (futuro): validar server-side via webhook do gateway antes de liberar.
  */

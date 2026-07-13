@@ -5,10 +5,7 @@
 export type Gateway = 'kiwify' | 'hotmart' | 'stripe'
 
 // ---------- PREENCHA AQUI PARA ATIVAR O CHECKOUT E OS PIXELS ----------
-export const CHECKOUT_URL_MAPA = 'https://pay.cakto.com.br/322er8j_971607' // Mapa (tripwire) — R$ 8,75
-// ⬇️ TESTE DE PREÇO: link Cakto da variante de R$ 24,90 (COLE quando tiver).
-//    Enquanto vazio, a variante 2490 cai no link de 8,75 como fallback seguro.
-export const CHECKOUT_URL_MAPA_2490 = '' // TODO: cole aqui o checkout Cakto de R$ 24,90
+export const CHECKOUT_URL_MAPA = 'https://pay.cakto.com.br/e8njve6' // Mapa — R$ 24,90 (preço único)
 export const CHECKOUT_URL_MANUAL = 'https://pay.cakto.com.br/399isvc_971606' // Manual — ⚠️ está R$ 27,99 no Cakto; a copy promete R$ 27,00
 export const CHECKOUT_URL_COMPLETO = 'https://pay.cakto.com.br/3dcdxzp_977565' // O Ninho Completo — R$ 67,55 (upsell final)
 export const URL_RETORNO_SUCESSO = 'https://futuro-do-seu-filho.vercel.app'
@@ -40,58 +37,12 @@ export function saveLead(contact: string) {
 }
 
 // ============================================================
-// TESTE DE PREÇO DO TRIPWIRE (Mapa) — R$ 8,75 vs R$ 24,90
-// ------------------------------------------------------------
-// A variante é escolhida por parâmetro de URL e fica gravada no navegador
-// da visitante (para o Purchase no retorno usar o mesmo valor):
-//   ?preco=875   ou ?p=a  → R$ 8,75  (padrão)
-//   ?preco=2490  ou ?p=b  → R$ 24,90
-// InitiateCheckout usa o `value` da variante; Purchase usa o valor REAL
-// (o do retorno do Cakto quando vier, senão o `value` da variante).
+// PREÇO DO MAPA — único, R$ 24,90 (teste de preço removido)
+// InitiateCheckout usa MAPA_VALUE; Purchase usa o valor REAL do retorno do
+// Cakto (com MAPA_VALUE como fallback).
 // ============================================================
-export type MapaVariantKey = '875' | '2490'
-
-export interface MapaVariant {
-  key: MapaVariantKey
-  price: string // rótulo exibido (ex.: "R$ 8,75")
-  value: number // valor numérico para os pixels (ex.: 8.75)
-  url: string // checkout Cakto da variante
-}
-
-export const MAPA_VARIANTS: Record<MapaVariantKey, MapaVariant> = {
-  '875': { key: '875', price: 'R$ 8,75', value: 8.75, url: CHECKOUT_URL_MAPA },
-  // se o link de 24,90 ainda não foi colado, usa o de 8,75 como fallback
-  '2490': { key: '2490', price: 'R$ 24,90', value: 24.9, url: CHECKOUT_URL_MAPA_2490 || CHECKOUT_URL_MAPA },
-}
-
-export const DEFAULT_MAPA_VARIANT: MapaVariantKey = '875'
-
-const MAPA_VARIANT_LS_KEY = 'mapa-variant'
-const VARIANT_ALIASES: Record<string, MapaVariantKey> = {
-  '875': '875', '8': '875', '8,75': '875', '875a': '875', a: '875',
-  '2490': '2490', '24': '2490', '24,90': '2490', b: '2490',
-}
-
-/**
- * Resolve a variante de preço ativa. Se a URL trouxer ?preco=/`?p=`, grava a
- * escolha no localStorage (para o retorno do pagamento usar o mesmo valor).
- * Seguro no SSR/ausência de window.
- */
-export function currentMapaVariant(): MapaVariant {
-  try {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      const raw = (params.get('preco') ?? params.get('p') ?? params.get('price') ?? '').toLowerCase().trim()
-      const picked = VARIANT_ALIASES[raw]
-      if (picked) localStorage.setItem(MAPA_VARIANT_LS_KEY, picked)
-      const stored = localStorage.getItem(MAPA_VARIANT_LS_KEY) as MapaVariantKey | null
-      if (stored && MAPA_VARIANTS[stored]) return MAPA_VARIANTS[stored]
-    }
-  } catch {
-    /* localStorage bloqueado — cai no padrão */
-  }
-  return MAPA_VARIANTS[DEFAULT_MAPA_VARIANT]
-}
+export const MAPA_PRICE = 'R$ 24,90'
+export const MAPA_VALUE = 24.9
 
 export const config = {
   // ---------- GATEWAY DE PAGAMENTO ----------
@@ -101,10 +52,10 @@ export const config = {
   gateway: 'kiwify' as Gateway,
 
   checkout: {
-    // Degrau 1 — R$ 8,75: destrava o RESULTADO (o Mapa)
+    // Degrau 1 — R$ 24,90: destrava o RESULTADO (o Mapa)
     mapa: {
-      price: 'R$ 8,75',
-      anchorPrice: 'R$ 161',
+      price: MAPA_PRICE,
+      anchorPrice: 'R$ 195',
       url: CHECKOUT_URL_MAPA, // ex.: 'https://pay.kiwify.com.br/XXXXXX'
     },
     // Degrau 2 — R$ 27: adiciona o MANUAL (a ação)
@@ -162,8 +113,7 @@ export const config = {
 
 /** Abre o checkout do gateway. Se a URL estiver vazia (modo teste), simula o pagamento. */
 export function openCheckout(product: 'mapa' | 'manual' | 'completo') {
-  // O Mapa é o tripwire em teste de preço: usa a URL da variante ativa.
-  const url = product === 'mapa' ? currentMapaVariant().url : config.checkout[product].url
+  const url = config.checkout[product].url
   if (url) {
     window.location.href = url
   } else {

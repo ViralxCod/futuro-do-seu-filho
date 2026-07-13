@@ -1,4 +1,4 @@
-import { config, SUPABASE_URL, SUPABASE_ANON_KEY, currentMapaVariant } from '../config'
+import { config, SUPABASE_URL, SUPABASE_ANON_KEY, MAPA_VALUE } from '../config'
 
 // Eventos do funil
 export type FunnelEvent =
@@ -67,11 +67,10 @@ const META_STANDARD: Partial<Record<FunnelEvent, { name: string; params?: Record
   checkout_completo_iniciado: { name: 'InitiateCheckout', params: { value: 67.55, currency: 'BRL' } },
 }
 
-/** Alguns eventos têm `value` dinâmico (teste de preço do Mapa). */
+/** InitiateCheckout do Mapa usa o preço único (R$ 24,90). */
 function metaFor(event: FunnelEvent): { name: string; params?: Record<string, unknown> } | undefined {
   if (event === 'checkout_1999_iniciado') {
-    // InitiateCheckout com o valor da VARIANTE de preço ativa (8,75 ou 24,90).
-    return { name: 'InitiateCheckout', params: { value: currentMapaVariant().value, currency: 'BRL' } }
+    return { name: 'InitiateCheckout', params: { value: MAPA_VALUE, currency: 'BRL' } }
   }
   return META_STANDARD[event]
 }
@@ -205,7 +204,7 @@ async function sendCapiPurchase(input: {
  * usamos o preço configurado como fallback.
  */
 export function purchaseFromParams(product: 'mapa' | 'manual' | 'completo', params: URLSearchParams): PurchaseInput {
-  const fallback = product === 'mapa' ? currentMapaVariant().value : product === 'manual' ? 27.99 : 67.55
+  const fallback = product === 'mapa' ? MAPA_VALUE : product === 'manual' ? 27.99 : 67.55
   const raw = params.get('value') ?? params.get('valor') ?? params.get('amount')
   // aceita "27,99" ou "27.99"
   const parsed = raw ? Number(raw.replace(',', '.')) : NaN

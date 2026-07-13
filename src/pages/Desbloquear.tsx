@@ -5,7 +5,7 @@ import { WhatsAppPrints } from '../components/WhatsAppPrints'
 import { TimerCard } from '../components/TimerCard'
 import { LiveCounter } from '../components/LiveCounter'
 import { CountdownTimer } from '../components/CountdownTimer'
-import { currentMapaVariant, openCheckout } from '../config'
+import { MAPA_PRICE, openCheckout } from '../config'
 import { useFunnel } from '../store'
 import { track } from '../lib/tracking'
 
@@ -30,7 +30,6 @@ const faq = [
 export function Desbloquear() {
   const navigate = useNavigate()
   const profile = useFunnel((s) => s.profile)
-  const variant = currentMapaVariant() // teste de preço: R$ 8,75 ou R$ 24,90
 
   useEffect(() => {
     if (!profile) navigate('/', { replace: true })
@@ -89,10 +88,10 @@ export function Desbloquear() {
           Tudo isso: <s className="text-fog opacity-70">R$195</s>
         </p>
         <p className="mt-4 font-headline text-6xl font-bold text-gold drop-shadow-[0_0_20px_rgba(240,199,94,0.4)]">
-          {variant.price}
+          {MAPA_PRICE}
         </p>
         <p className="mt-2 text-[15px] font-semibold text-cream">
-          Hoje, por {variant.price} — pagamento único, acesso na hora.
+          Hoje, por {MAPA_PRICE} — pagamento único, acesso na hora.
         </p>
         <p className="mt-2 text-[14px] italic text-fog">
           Menos que um lanche — pra sair do ciclo e voltar a se reconhecer.
@@ -100,7 +99,7 @@ export function Desbloquear() {
       </div>
 
       <button onClick={buy} className="cta mt-6">
-        Quero sair do ciclo — {variant.price} →
+        Quero sair do ciclo — {MAPA_PRICE} →
       </button>
 
       {/* Garantia Arrepio — ícone SVG limpo, sem emoji */}
@@ -131,7 +130,7 @@ export function Desbloquear() {
       </p>
 
       <button onClick={buy} className="cta mt-6">
-        Quero sair do ciclo — {variant.price} →
+        Quero sair do ciclo — {MAPA_PRICE} →
       </button>
 
       <h2 className="mt-10 font-headline text-xl font-bold text-gold">Perguntas frequentes</h2>

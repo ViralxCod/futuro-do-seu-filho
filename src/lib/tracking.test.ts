@@ -5,7 +5,7 @@ const q = (s: string) => new URLSearchParams(s)
 
 describe('purchaseFromParams — valores e retorno do gateway', () => {
   it('usa o valor de fallback certo por produto quando o gateway não envia valor', () => {
-    expect(purchaseFromParams('mapa', q('')).value).toBe(8.75)
+    expect(purchaseFromParams('mapa', q('')).value).toBe(24.9)
     expect(purchaseFromParams('manual', q('')).value).toBe(27.99)
     expect(purchaseFromParams('completo', q('')).value).toBe(67.55)
   })
