@@ -3,9 +3,10 @@ import { motion } from 'framer-motion'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useFunnel } from '../store'
 import { track, trackPurchase, purchaseFromParams } from '../lib/tracking'
+import { markLeadComprou } from '../lib/leads'
 
 /**
- * Retorno do pagamento de R$ 19,99.
+ * Retorno do pagamento do Mapa (tripwire — R$ 8,75 ou R$ 24,90 no teste de preço).
  * Verificação nesta versão: query param ?paid=1 + localStorage.
  * TODO (futuro): validar server-side via webhook do gateway antes de liberar.
  */
@@ -14,6 +15,7 @@ export function Obrigada() {
   const [params] = useSearchParams()
   const markPaidMapa = useFunnel((s) => s.markPaidMapa)
   const paidMapa = useFunnel((s) => s.paidMapa)
+  const leadId = useFunnel((s) => s.leadId)
 
   useEffect(() => {
     if (params.get('paid') === '1' || paidMapa) {
@@ -21,6 +23,7 @@ export function Obrigada() {
       // Pagamento aprovado → Purchase (Pixel + CAPI, uma única vez por pedido).
       trackPurchase(purchaseFromParams('mapa', params))
       track('compra_1999') // evento custom do funil (sem Purchase duplicado)
+      void markLeadComprou(leadId) // tira o lead da fila de recuperação da Leona
       const t = setTimeout(() => navigate('/manual', { replace: true }), 2000)
       return () => clearTimeout(t)
     }

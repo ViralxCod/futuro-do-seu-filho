@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { questions, insights, progressPhrases, type Option, type Question, type Insight } from '../data/quiz'
 import { useFunnel } from '../store'
 import { track } from '../lib/tracking'
+import { captureLead } from '../lib/leads'
 import { fill, withName } from '../lib/personalize'
 import { playTick, playChime, haptic, soundEnabled, toggleSound } from '../lib/sound'
 import { Confetti } from '../components/Confetti'
@@ -15,6 +16,7 @@ type Step =
   | { kind: 'name' }
   | { kind: 'question'; q: Question }
   | { kind: 'insight'; ins: Insight; block: number }
+  | { kind: 'whatsapp' }
   | { kind: 'commitment' }
 
 const questionSteps: Step[] = questions.flatMap((q): Step[] => {
@@ -24,16 +26,26 @@ const questionSteps: Step[] = questions.flatMap((q): Step[] => {
     : [{ kind: 'question', q }]
 })
 
-const steps: Step[] = [{ kind: 'gender' }, { kind: 'age' }, { kind: 'name' }, ...questionSteps, { kind: 'commitment' }]
+// Captura de WhatsApp logo após a P3 (e o insight que a segue): fim do Bloco 1,
+// intenção já aquecida, mas antes do resultado. Não bloqueia se pular.
+const idxQ4 = questionSteps.findIndex((s) => s.kind === 'question' && s.q.id === 4)
+const questionStepsWithWhats: Step[] =
+  idxQ4 >= 0
+    ? [...questionSteps.slice(0, idxQ4), { kind: 'whatsapp' }, ...questionSteps.slice(idxQ4)]
+    : [...questionSteps, { kind: 'whatsapp' }]
+
+const steps: Step[] = [{ kind: 'gender' }, { kind: 'age' }, { kind: 'name' }, ...questionStepsWithWhats, { kind: 'commitment' }]
 
 const AGES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
 export function Quiz() {
   const navigate = useNavigate()
-  const { quizStep, setQuizStep, answer, child, setChild, setCommitment, setBirraNote } = useFunnel()
+  const { quizStep, setQuizStep, answer, child, setChild, setCommitment, setBirraNote, setLead } = useFunnel()
   const [selected, setSelected] = useState<Option['letter'] | null>(null)
   const [noteOpen, setNoteOpen] = useState(false)
   const [note, setNote] = useState('')
+  const [whats, setWhats] = useState('')
+  const [savingLead, setSavingLead] = useState(false)
   const [draft, setDraft] = useState<{ gender?: 'menino' | 'menina'; age?: number; name: string }>({ name: '' })
   const [soundOn, setSoundOn] = useState(soundEnabled)
 
@@ -309,6 +321,60 @@ export function Quiz() {
               <button onClick={advance} className="cta mt-6">
                 {step.ins.button}
               </button>
+            </motion.div>
+          )}
+
+          {step.kind === 'whatsapp' && (
+            <motion.div
+              key="whatsapp"
+              initial={{ opacity: 0, x: 60 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -60 }}
+              transition={{ duration: 0.3 }}
+              className="text-center"
+            >
+              <span className="text-4xl">💬</span>
+              <h2 className="mt-4 text-[21px] font-bold leading-snug">
+                Pra onde eu mando o resultado {child?.name ? `d${child.gender === 'menina' ? 'a' : 'o'} ${child.name}` : 'do seu filho'}?
+              </h2>
+              <p className="mt-3 text-[14px] leading-relaxed text-fog">
+                Deixa seu WhatsApp pra eu te enviar o <strong className="text-cream">resultado completo</strong> + um{' '}
+                <strong className="text-cream">socorro rápido</strong> pra usar hoje à noite na hora da birra. Sem spam, é
+                só isso.
+              </p>
+              <input
+                value={whats}
+                onChange={(e) => setWhats(e.target.value)}
+                type="tel"
+                inputMode="tel"
+                autoFocus
+                placeholder="(DDD) 9 9999-9999"
+                className="mt-5 w-full rounded-2xl border-2 border-white/10 bg-cream px-5 py-4 text-center text-xl font-bold text-cocoa shadow-lg outline-none placeholder:font-normal placeholder:text-cocoa-soft/50 focus:border-gold"
+              />
+              <button
+                disabled={savingLead}
+                onClick={async () => {
+                  haptic()
+                  playTick()
+                  setSavingLead(true)
+                  try {
+                    const id = await captureLead({ whatsapp: whats, nome: child?.name ?? null })
+                    if (id) setLead(id, whats.replace(/[^\d]/g, ''))
+                  } finally {
+                    setSavingLead(false)
+                    advance()
+                  }
+                }}
+                className="cta mt-5 disabled:animate-none disabled:opacity-50"
+              >
+                {savingLead ? 'Salvando...' : 'Quero receber meu resultado →'}
+              </button>
+              <button onClick={advance} className="mt-4 block w-full text-[13px] text-white/35 underline underline-offset-2">
+                Prefiro só ver na tela
+              </button>
+              <p className="mt-4 text-[11px] leading-relaxed text-fog/70">
+                🔒 Seus dados são usados só pra te enviar o resultado e dicas. Você pode pedir pra sair quando quiser.
+              </p>
             </motion.div>
           )}
 

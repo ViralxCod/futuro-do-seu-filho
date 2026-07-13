@@ -38,18 +38,26 @@ export function Landing() {
         transition={{ delay: 0.08, duration: 0.5 }}
         className="mt-4 text-center text-[26px] font-bold leading-tight"
       >
-        Você jura toda manhã que hoje vai ser paciente. Aí dá 18h... e você vira <span className="hl">alguém que você mesma odeia.</span>
+        A birra começa, você jura que hoje não grita... aí dá 18h e vem o grito — e depois, aquela <span className="hl">culpa que não passa.</span>
       </motion.h1>
+
+      <motion.p
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.16, duration: 0.5 }}
+        className="mt-4 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-3 text-center text-[16px] font-bold leading-snug text-gold"
+      >
+        Dome a birra sem gritar — e sem a culpa depois.
+      </motion.p>
 
       <motion.p
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
+        transition={{ delay: 0.24, duration: 0.5 }}
         className="mt-4 text-center text-[15px] leading-relaxed text-fog"
       >
-        Quem você está criando hoje: o adulto que vai te agradecer — ou o que vai carregar os seus erros? Responda 12
-        perguntas rápidas sobre o seu dia a dia e <span className="hl font-bold">veja o futuro do seu filho</span> antes
-        que seja tarde para mudá-lo.
+        Responda 12 perguntas rápidas sobre o seu dia a dia e descubra o <span className="hl font-bold">padrão por trás
+        do ciclo birra → grito → culpa</span> — e o primeiro passo pra sair dele já hoje à noite.
       </motion.p>
 
       {/* CTA na primeira dobra */}

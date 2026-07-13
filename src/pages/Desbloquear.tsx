@@ -5,15 +5,19 @@ import { WhatsAppPrints } from '../components/WhatsAppPrints'
 import { TimerCard } from '../components/TimerCard'
 import { LiveCounter } from '../components/LiveCounter'
 import { CountdownTimer } from '../components/CountdownTimer'
-import { config, openCheckout } from '../config'
+import { currentMapaVariant, openCheckout } from '../config'
 import { useFunnel } from '../store'
 import { track } from '../lib/tracking'
-import { genderOf, fill } from '../lib/personalize'
 
+// O QUE VOCÊ RECEBE HOJE — cada item com preço "de" riscado para ancorar valor.
 const stack = [
-  { emoji: '📍', title: 'O Ponto Cego Revelado', text: 'o padrão exato detectado nas suas respostas dos Blocos 2 e 4, por extenso, sem tarja', value: '(valor: R$ 47)' },
-  { emoji: '📈', title: 'Projeção Ano a Ano', text: 'o retrato do seu filho aos 7, 14, 18 e 25 anos com o padrão atual — e a versão dele se você corrigir agora', value: '(valor: R$ 67)' },
-  { emoji: '💯', title: 'Seu Score de Conexão', text: 'sua pontuação de 0 a 100 comparada com a média das mães do seu perfil', value: '(valor: R$ 47)' },
+  { title: 'O Mapa do seu filho', text: 'o resultado completo do seu teste', from: 'R$47' },
+  { title: 'Guia "Os 5 Gatilhos das 18h"', text: 'o que dispara o grito no fim do dia — e como desarmar antes', from: 'R$37' },
+  { title: '3 Áudios "Primeiro Socorro no Grito"', text: 'pra ouvir no exato momento em que a raiva começa a subir', from: 'R$29' },
+  { title: 'Termômetro do Corpo', text: 'reconhecer a raiva no corpo antes de explodir', from: 'R$24' },
+  { title: 'Roteiro da Reparação', text: 'o que dizer depois do grito pra reconstruir a conexão', from: 'R$22' },
+  { title: 'Checklist "Palavras que Curam × Ferem"', text: 'a lista pra deixar na geladeira e consultar no calor da hora', from: 'R$19' },
+  { title: 'A Regra dos 3 Passos', text: 'a técnica de 20 segundos pra sair do piloto automático', from: 'R$17' },
 ]
 
 const faq = [
@@ -26,8 +30,7 @@ const faq = [
 export function Desbloquear() {
   const navigate = useNavigate()
   const profile = useFunnel((s) => s.profile)
-  const child = useFunnel((s) => s.child)
-  const g = genderOf(child)
+  const variant = currentMapaVariant() // teste de preço: R$ 8,75 ou R$ 24,90
 
   useEffect(() => {
     if (!profile) navigate('/', { replace: true })
@@ -45,50 +48,59 @@ export function Desbloquear() {
       <TimerCard />
 
       <h1 className="pt-5 text-center text-[26px] font-bold leading-tight">
-        Seu Mapa está pronto. Falta só você ter <span className="hl">coragem de olhar.</span>
+        Você já viu o Mapa. Agora, o passo a passo pra <span className="hl">sair do ciclo</span> — por menos que um lanche.
       </h1>
+
+      <p className="mt-3 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-2.5 text-center text-[15px] font-bold text-gold">
+        Dome a birra sem gritar — e sem a culpa depois.
+      </p>
 
       <LiveCounter className="mt-3" />
 
       <p className="mt-6 text-[15px] leading-relaxed text-fog">
-        Você respondeu com honestidade. O sistema cruzou suas 12 respostas e o resultado está montado na próxima tela: o
-        ponto cego completo, a projeção do seu filho aos 7, 14, 18 e 25 anos, e o seu Score de Conexão. Tudo baseado no
-        que VOCÊ respondeu — não em teoria genérica.
+        O Mapa te mostrou o que acontece. O que vem agora é o alívio: um caminho simples, passo a passo, pra você
+        interromper o grito antes que ele comece — e reconstruir a conexão nos dias em que ele escapar. Nada de teoria.
+        Só o que fazer, na ordem certa, a partir de hoje.
       </p>
 
       <p className="mt-5 rounded-2xl bg-cream p-5 text-[15px] leading-relaxed text-cocoa">
-        Antes de continuar, entenda uma coisa: <strong>nenhum ponto cego faz de você uma mãe ruim.</strong> Você jura de
-        manhã que vai ser paciente e explode às 18h não porque é fraca — mas porque está exausta, sem manual e, na
-        maioria dos dias, sozinha. O Mapa não existe para te julgar. Existe para te dar o que nunca te deram:{' '}
-        <strong>clareza.</strong>
+        Entenda uma coisa: <strong>sair do ciclo não é sobre virar uma mãe perfeita.</strong> Você jura de manhã que vai
+        ser paciente e explode às 18h não porque é fraca — mas porque está exausta, sem manual e, na maioria dos dias,
+        sozinha. Isto aqui é o manual que nunca te deram. Um passo de cada vez, você volta a se reconhecer.
       </p>
 
-      <h2 className="mt-8 font-headline text-xl font-bold text-gold">Ao desbloquear agora, você vê na tela:</h2>
-      <div className="mt-4 space-y-4">
+      <h2 className="mt-8 font-headline text-xl font-bold text-gold">O QUE VOCÊ RECEBE HOJE</h2>
+      <div className="mt-4 space-y-3">
         {stack.map((s, i) => (
-          <div key={i} className="rounded-2xl border border-gold/25 bg-night-card p-4 shadow-lg">
+          <div key={i} className="flex items-start justify-between gap-3 rounded-2xl border border-gold/25 bg-night-card p-4 shadow-lg">
             <p className="text-[15px] leading-snug text-cream">
-              {s.emoji} <strong className="text-gold">{s.title}</strong> — {s.text} <em className="text-fog">{s.value}</em>
+              <strong className="text-gold">{s.title}</strong> — {s.text}
             </p>
+            <span className="mt-0.5 shrink-0 text-[14px] text-fog">
+              de <s className="opacity-70">{s.from}</s>
+            </span>
           </div>
         ))}
       </div>
 
-      {/* Ancoragem: riscado cinza, preço final dourado grande */}
-      <div className="mt-8 text-center">
-        <p className="text-fog">
-          <s className="opacity-70">De {config.checkout.mapa.anchorPrice}</s> por apenas:
+      {/* Fechamento do stack + ancoragem: total riscado, preço final dourado grande */}
+      <div className="mt-6 text-center">
+        <p className="text-[16px] text-cream">
+          Tudo isso: <s className="text-fog opacity-70">R$195</s>
         </p>
-        <p className="font-headline text-6xl font-bold text-gold drop-shadow-[0_0_20px_rgba(240,199,94,0.4)]">
-          {config.checkout.mapa.price}
+        <p className="mt-4 font-headline text-6xl font-bold text-gold drop-shadow-[0_0_20px_rgba(240,199,94,0.4)]">
+          {variant.price}
+        </p>
+        <p className="mt-2 text-[15px] font-semibold text-cream">
+          Hoje, por {variant.price} — pagamento único, acesso na hora.
         </p>
         <p className="mt-2 text-[14px] italic text-fog">
-          Menos que um lanche no shopping — pelo retrato de quem seu filho está se tornando.
+          Menos que um lanche — pra sair do ciclo e voltar a se reconhecer.
         </p>
       </div>
 
       <button onClick={buy} className="cta mt-6">
-        🔓 VER MEU RESULTADO COMPLETO AGORA — {config.checkout.mapa.price} →
+        Quero sair do ciclo — {variant.price} →
       </button>
 
       {/* Garantia Arrepio — ícone SVG limpo, sem emoji */}
@@ -99,10 +111,10 @@ export function Desbloquear() {
         </svg>
         <div>
           <h3 className="font-headline text-lg font-bold text-gold">
-            {fill('Garantia Arrepio: se o Mapa não descrever {o} {NOME} com uma precisão que te arrepie, você não paga.', child)}
+            Garantia de 7 dias — se não te ajudar, seu dinheiro volta.
           </h3>
           <p className="mt-1.5 text-[14px] leading-relaxed text-cream">
-            Leia tudo. Se em 7 dias você não olhar pro seu filho — e pra você mesma — de um jeito diferente, um clique e
+            Aplique o passo a passo. Se em 7 dias você não sentir o clima em casa começar a mudar, um clique e
             devolvemos 100%. Sem perguntas, sem enrolação. O risco é todo nosso.
           </p>
         </div>
@@ -119,7 +131,7 @@ export function Desbloquear() {
       </p>
 
       <button onClick={buy} className="cta mt-6">
-        🔓 DESBLOQUEAR O FUTURO D{g.o.toUpperCase()} {child?.name ? child.name.toUpperCase() : 'MEU FILHO'} — {config.checkout.mapa.price} →
+        Quero sair do ciclo — {variant.price} →
       </button>
 
       <h2 className="mt-10 font-headline text-xl font-bold text-gold">Perguntas frequentes</h2>

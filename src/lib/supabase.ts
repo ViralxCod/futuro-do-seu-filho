@@ -47,3 +47,36 @@ export interface Purchase {
   status: string
   criado_em: string
 }
+
+export interface Lead {
+  id: string
+  whatsapp: string
+  nome: string | null
+  origem: string | null
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+  utm_content: string | null
+  utm_term: string | null
+  fbclid: string | null
+  referrer: string | null
+  landing_url: string | null
+  status: 'lead' | 'comprou' | 'abandonou'
+  opt_in: boolean
+  opt_out: boolean
+  criado_em: string
+  comprou_em: string | null
+}
+
+export interface Envio {
+  id: string
+  lead_id: string | null
+  whatsapp: string
+  tipo: string
+  canal: string
+  mensagem: string | null
+  status: string
+  provider_id: string | null
+  erro: string | null
+  criado_em: string
+}

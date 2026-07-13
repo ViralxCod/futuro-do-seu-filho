@@ -13,8 +13,10 @@ import { Mapa } from './pages/Mapa'
 import { Ninho } from './pages/Ninho'
 import { NinhoAdmin } from './pages/NinhoAdmin'
 import { Ler } from './pages/Ler'
+import { Sair } from './pages/Sair'
 import { useFunnel, isExpired } from './store'
 import { initPixels } from './lib/tracking'
+import { captureUtmOnce } from './lib/leads'
 
 function ExpiryGuard() {
   // Se o prazo de 15 min estourou (e não pagou), o resultado é apagado
@@ -52,6 +54,7 @@ function AnimatedRoutes() {
         <Route path="/ninho" element={<Ninho />} />
         <Route path="/ninho/admin" element={<NinhoAdmin />} />
         <Route path="/ninho/ler/:slug" element={<Ler />} />
+        <Route path="/sair" element={<Sair />} />
         <Route path="*" element={<Landing />} />
       </Routes>
     </AnimatePresence>
@@ -60,6 +63,7 @@ function AnimatedRoutes() {
 
 export default function App() {
   useEffect(() => {
+    captureUtmOnce() // grava origem/UTM antes de o router limpar a query
     initPixels()
   }, [])
 

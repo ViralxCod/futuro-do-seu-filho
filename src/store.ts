@@ -30,7 +30,12 @@ interface FunnelState {
   commitment: 'verdade' | 'resumo' | null
   /** resposta livre da opção E da P2 ("como ele reage ao NÃO") */
   birraNote: string | null
+  /** WhatsApp capturado no meio do quiz (opt-in de recuperação) */
+  whatsapp: string | null
+  /** id da linha em public.leads (para marcar "comprou" no retorno do pagamento) */
+  leadId: string | null
 
+  setLead: (leadId: string | null, whatsapp: string) => void
   setBirraNote: (note: string) => void
   /** define o perfil diretamente (sincronização com a conta d'O Ninho) */
   setProfile: (p: Letter) => void
@@ -66,7 +71,10 @@ export const useFunnel = create<FunnelState>()(
       startedAt: null,
       commitment: null,
       birraNote: null,
+      whatsapp: null,
+      leadId: null,
 
+      setLead: (leadId, whatsapp) => set({ leadId, whatsapp }),
       setBirraNote: (birraNote) => set({ birraNote }),
       setProfile: (profile) => set({ profile }),
       setCommitment: (commitment) => set({ commitment }),
@@ -110,6 +118,8 @@ export const useFunnel = create<FunnelState>()(
           completoSeen: false,
           upsellDeclined: false,
           startedAt: null,
+          whatsapp: null,
+          leadId: null,
         }),
     }),
     { name: 'funil-futuro-filho' },

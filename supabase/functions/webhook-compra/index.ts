@@ -102,6 +102,16 @@ Deno.serve(async (req) => {
     const gatewayId: string | null =
       payload?.order_id ?? payload?.data?.id ?? payload?.data?.purchase?.transaction ?? payload?.id ?? null
 
+    // Telefone do comprador (quando o gateway envia) — usado só pra tirar o
+    // lead da fila de recuperação da Leona (não messageamos quem já comprou).
+    const phoneRaw: string | undefined =
+      payload?.data?.customer?.phone ??
+      payload?.customer?.phone ??
+      payload?.data?.buyer?.phone ??
+      payload?.phone ??
+      payload?.data?.customer?.whatsapp ??
+      undefined
+
     if (!email) return new Response('missing email', { status: 400 })
 
     const aprovada = /paid|approved|aprovad|complete|pago/i.test(status)
@@ -115,6 +125,18 @@ Deno.serve(async (req) => {
       : [/completo|ninho\s*completo/i.test(produtoNome) ? 'completo' : /manual/i.test(produtoNome) ? 'manual' : 'mapa']
 
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+
+    // Tira o lead da fila da Leona quando a compra é aprovada (match por telefone).
+    if (aprovada && phoneRaw) {
+      const numero = String(phoneRaw).replace(/[^\d]/g, '')
+      if (numero.length >= 10) {
+        await admin
+          .from('leads')
+          .update({ status: 'comprou', comprou_em: new Date().toISOString() })
+          .eq('whatsapp', numero)
+          .eq('status', 'lead')
+      }
+    }
 
     // Uma linha de compra por produto (auditoria). O valor total fica na
     // primeira linha; os bumps não vêm com valor separado no payload.

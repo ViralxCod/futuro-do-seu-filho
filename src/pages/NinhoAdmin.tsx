@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase, type Product, type Profile, type Purchase, type Entitlement } from '../lib/supabase'
+import { supabase, type Product, type Profile, type Purchase, type Entitlement, type Lead } from '../lib/supabase'
 import { Logo } from '../components/Logo'
 
-type Tab = 'usuarios' | 'produtos' | 'compras' | 'metricas'
+type Tab = 'usuarios' | 'leads' | 'produtos' | 'compras' | 'metricas'
 
 export function NinhoAdmin() {
   const [me, setMe] = useState<Profile | null | 'loading'>('loading')
@@ -42,7 +42,7 @@ export function NinhoAdmin() {
         <Link to="/ninho" className="text-[13px] text-white/40 underline">← área de membros</Link>
       </div>
       <div className="mt-6 flex gap-2 overflow-x-auto">
-        {(['usuarios', 'produtos', 'compras', 'metricas'] as Tab[]).map((t) => (
+        {(['usuarios', 'leads', 'produtos', 'compras', 'metricas'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -54,6 +54,7 @@ export function NinhoAdmin() {
       </div>
       <div className="mt-5">
         {tab === 'usuarios' && <Usuarios />}
+        {tab === 'leads' && <Leads />}
         {tab === 'produtos' && <Produtos />}
         {tab === 'compras' && <Compras />}
         {tab === 'metricas' && <Metricas />}
@@ -163,6 +164,95 @@ function Usuarios() {
           </div>
         ))}
         {rows.length === 0 && <p className="text-center text-[13px] text-fog">Nenhum usuário ainda.</p>}
+      </div>
+    </div>
+  )
+}
+
+// ---------------- LEADS ----------------
+type LeadStatus = 'todos' | 'lead' | 'comprou' | 'abandonou'
+const statusColor = (s: string) =>
+  s === 'comprou' ? 'text-mint' : s === 'abandonou' ? 'text-coral' : 'text-gold'
+
+function Leads() {
+  const [rows, setRows] = useState<Lead[]>([])
+  const [query, setQuery] = useState('')
+  const [status, setStatus] = useState<LeadStatus>('todos')
+  const [loading, setLoading] = useState(false)
+
+  const load = async () => {
+    if (!supabase) return
+    setLoading(true)
+    let q = supabase.from('leads').select('*').order('criado_em', { ascending: false }).limit(1000)
+    if (status !== 'todos') q = q.eq('status', status)
+    if (query.trim()) q = q.or(`whatsapp.ilike.%${query.trim()}%,nome.ilike.%${query.trim()}%,origem.ilike.%${query.trim()}%`)
+    const { data } = await q
+    setRows((data as Lead[]) ?? [])
+    setLoading(false)
+  }
+  useEffect(() => void load(), [status])
+
+  const exportCsv = () => {
+    const cols: (keyof Lead)[] = [
+      'criado_em', 'nome', 'whatsapp', 'status', 'origem',
+      'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
+      'opt_in', 'opt_out', 'comprou_em',
+    ]
+    const esc = (v: unknown) => {
+      const s = v == null ? '' : String(v)
+      return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+    }
+    const header = cols.join(',')
+    const lines = rows.map((r) => cols.map((c) => esc(r[c])).join(','))
+    const csv = '﻿' + [header, ...lines].join('\n') // BOM p/ acentos no Excel
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `leads-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load()} placeholder="buscar por whatsapp, nome ou origem" className={inputCls} />
+        <button onClick={load} className={btnCls}>Buscar</button>
+        <button onClick={exportCsv} disabled={!rows.length} className="rounded-full border border-mint/50 px-4 py-2 text-[13px] font-bold text-mint disabled:opacity-40">
+          ⬇ Exportar CSV
+        </button>
+      </div>
+      <div className="mt-3 flex gap-2 overflow-x-auto">
+        {(['todos', 'lead', 'comprou', 'abandonou'] as LeadStatus[]).map((s) => (
+          <button
+            key={s}
+            onClick={() => setStatus(s)}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-bold capitalize ${status === s ? 'bg-gold text-night' : 'bg-night-card text-fog'}`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+      <p className="mt-3 text-[12px] text-fog">{loading ? 'carregando…' : `${rows.length} lead(s)`}</p>
+      <div className="mt-2 space-y-2">
+        {rows.map((l) => (
+          <div key={l.id} className="rounded-2xl bg-night-card p-4 text-[13px]">
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-bold text-cream">
+                {l.nome || '(sem nome)'} · <span className="text-gold">{l.whatsapp}</span>
+              </p>
+              <span className={`shrink-0 font-bold ${statusColor(l.status)}`}>
+                {l.status}{l.opt_out ? ' · opt-out' : ''}
+              </span>
+            </div>
+            <p className="mt-1 text-fog">
+              {new Date(l.criado_em).toLocaleString('pt-BR')} · origem: {l.origem || '—'}
+              {l.utm_campaign ? ` · camp: ${l.utm_campaign}` : ''}
+            </p>
+          </div>
+        ))}
+        {!loading && rows.length === 0 && <p className="text-center text-[13px] text-fog">Nenhum lead ainda.</p>}
       </div>
     </div>
   )

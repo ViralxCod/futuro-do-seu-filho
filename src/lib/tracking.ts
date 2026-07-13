@@ -1,4 +1,4 @@
-import { config, SUPABASE_URL, SUPABASE_ANON_KEY } from '../config'
+import { config, SUPABASE_URL, SUPABASE_ANON_KEY, currentMapaVariant } from '../config'
 
 // Eventos do funil
 export type FunnelEvent =
@@ -64,8 +64,16 @@ export function initPixels() {
 // CAPI). Aqui ficam só os eventos padrão que não representam compra.
 const META_STANDARD: Partial<Record<FunnelEvent, { name: string; params?: Record<string, unknown> }>> = {
   quiz_start: { name: 'Lead' },
-  checkout_1999_iniciado: { name: 'InitiateCheckout', params: { value: 8.75, currency: 'BRL' } },
   checkout_completo_iniciado: { name: 'InitiateCheckout', params: { value: 67.55, currency: 'BRL' } },
+}
+
+/** Alguns eventos têm `value` dinâmico (teste de preço do Mapa). */
+function metaFor(event: FunnelEvent): { name: string; params?: Record<string, unknown> } | undefined {
+  if (event === 'checkout_1999_iniciado') {
+    // InitiateCheckout com o valor da VARIANTE de preço ativa (8,75 ou 24,90).
+    return { name: 'InitiateCheckout', params: { value: currentMapaVariant().value, currency: 'BRL' } }
+  }
+  return META_STANDARD[event]
 }
 
 /** Dispara um evento do funil para Meta + TikTok (deduplicado por sessão). */
@@ -75,7 +83,7 @@ export function track(event: FunnelEvent) {
   sessionStorage.setItem(key, '1')
 
   if (window.fbq) {
-    const std = META_STANDARD[event]
+    const std = metaFor(event)
     if (std) window.fbq('track', std.name, std.params)
     window.fbq('trackCustom', event)
   }
@@ -197,7 +205,7 @@ async function sendCapiPurchase(input: {
  * usamos o preço configurado como fallback.
  */
 export function purchaseFromParams(product: 'mapa' | 'manual' | 'completo', params: URLSearchParams): PurchaseInput {
-  const fallback = product === 'mapa' ? 8.75 : product === 'manual' ? 27.99 : 67.55
+  const fallback = product === 'mapa' ? currentMapaVariant().value : product === 'manual' ? 27.99 : 67.55
   const raw = params.get('value') ?? params.get('valor') ?? params.get('amount')
   // aceita "27,99" ou "27.99"
   const parsed = raw ? Number(raw.replace(',', '.')) : NaN

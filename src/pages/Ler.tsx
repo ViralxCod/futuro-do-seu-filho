@@ -10,7 +10,12 @@ type Status = 'loading' | 'ok' | 'locked'
 interface Doc {
   title: string
   body_md: string
+  ord?: number
+  /** dia (após a compra) em que este material abre. 0 = imediato; 7 = bônus do 7º dia */
+  unlock_day?: number
 }
+
+const DAY_MS = 86_400_000
 
 /**
  * Página de leitura nativa de um produto da área de membros (/ninho/ler/:slug).
@@ -23,6 +28,7 @@ export function Ler() {
   const meta = bibliotecaMeta[slug]
   const [status, setStatus] = useState<Status>('loading')
   const [docs, setDocs] = useState<Doc[]>([])
+  const [daysSince, setDaysSince] = useState(0) // dias desde a compra deste produto
 
   useEffect(() => {
     if (!meta) {
@@ -44,9 +50,28 @@ export function Ler() {
       // A RLS libera as linhas só se o usuário tiver o entitlement do produto.
       const { data } = await supabase
         .from('deliverables')
-        .select('title, body_md, ord')
+        .select('title, body_md, ord, unlock_day')
         .eq('product_slug', slug)
         .order('ord')
+
+      // Data da compra deste produto → quantos dias já se passaram (desbloqueio no 7º dia).
+      const { data: ents } = await supabase
+        .from('entitlements')
+        .select('criado_em, products(slug)')
+        .eq('user_id', session.user.id)
+      // `products` vem como objeto ou array embutido — normalizamos o slug.
+      const slugOf = (e: { products?: unknown }): string | undefined => {
+        const p = e.products as { slug?: string } | { slug?: string }[] | null | undefined
+        return Array.isArray(p) ? p[0]?.slug : p?.slug
+      }
+      const times = (ents ?? [])
+        .filter((e) => slugOf(e as { products?: unknown }) === slug)
+        .map((e) => new Date((e as { criado_em: string }).criado_em).getTime())
+        .filter((t) => Number.isFinite(t))
+      if (times.length) {
+        setDaysSince(Math.max(0, Math.floor((Date.now() - Math.min(...times)) / DAY_MS)))
+      }
+
       if (data && data.length > 0) {
         setDocs(data as Doc[])
         setStatus('ok')
@@ -108,25 +133,50 @@ export function Ler() {
           <nav className="mt-6 rounded-2xl border border-white/10 bg-night-card p-4">
             <p className="text-[11px] font-bold uppercase tracking-widest text-gold/70">Neste material</p>
             <ol className="mt-2 list-inside list-decimal space-y-1 text-[14px] text-cream">
-              {docs.map((d, i) => (
-                <li key={i}>
-                  <a href={`#doc-${i}`} className="underline underline-offset-2 hover:text-gold">
-                    {d.title}
-                  </a>
-                </li>
-              ))}
+              {docs.map((d, i) => {
+                const locked = (d.unlock_day ?? 0) > daysSince
+                return (
+                  <li key={i} className={locked ? 'text-fog/60' : ''}>
+                    {locked ? (
+                      <span>🔒 {d.title} <span className="text-gold/70">(abre no {d.unlock_day}º dia)</span></span>
+                    ) : (
+                      <a href={`#doc-${i}`} className="underline underline-offset-2 hover:text-gold">
+                        {d.title}
+                      </a>
+                    )}
+                  </li>
+                )
+              })}
             </ol>
           </nav>
         )}
       </div>
 
-      {/* Conteúdo (vai pro PDF) */}
+      {/* Conteúdo (vai pro PDF). Materiais com desbloqueio futuro viram teaser. */}
       <div className="print-area mt-6 space-y-6">
-        {docs.map((d, i) => (
-          <section key={i} id={`doc-${i}`} className="rounded-3xl bg-cream p-6 shadow-xl print:rounded-none print:p-0 print:shadow-none">
-            <Markdown md={d.body_md} />
-          </section>
-        ))}
+        {docs.map((d, i) => {
+          const unlockDay = d.unlock_day ?? 0
+          const locked = unlockDay > daysSince
+          if (locked) {
+            const faltam = unlockDay - daysSince
+            return (
+              <section key={i} id={`doc-${i}`} className="no-print rounded-3xl border-2 border-gold/40 bg-night-card p-6 text-center shadow-xl">
+                <span className="text-4xl">🔒</span>
+                <p className="mt-3 text-[11px] font-bold uppercase tracking-widest text-gold/70">Bônus do {unlockDay}º dia</p>
+                <h3 className="mt-1 font-headline text-xl font-bold text-gold">No {unlockDay}º dia você desbloqueia: {d.title}</h3>
+                <p className="mt-2 text-[14px] leading-relaxed text-fog">
+                  Seu núcleo já está todo liberado. Este material extra abre automaticamente {faltam <= 1 ? 'amanhã' : `em ${faltam} dias`} —
+                  quando você já tiver praticado o passo a passo e estiver pronta pra ele.
+                </p>
+              </section>
+            )
+          }
+          return (
+            <section key={i} id={`doc-${i}`} className="rounded-3xl bg-cream p-6 shadow-xl print:rounded-none print:p-0 print:shadow-none">
+              <Markdown md={d.body_md} />
+            </section>
+          )
+        })}
       </div>
 
       <button onClick={() => window.print()} className="no-print cta mt-8">
