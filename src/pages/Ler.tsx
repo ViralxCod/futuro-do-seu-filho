@@ -1,22 +1,31 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { biblioteca } from '../data/biblioteca'
+import { bibliotecaMeta } from '../data/biblioteca'
 import { Markdown } from '../components/Markdown'
 import { supabase } from '../lib/supabase'
 import { Logo } from '../components/Logo'
 
 type Status = 'loading' | 'ok' | 'locked'
+interface Doc {
+  title: string
+  body_md: string
+}
 
-/** Página de leitura nativa de um produto da área de membros (/ninho/ler/:slug). */
+/**
+ * Página de leitura nativa de um produto da área de membros (/ninho/ler/:slug).
+ * O conteúdo NÃO está no bundle: é buscado no Supabase (tabela `deliverables`)
+ * e a RLS por entitlement só devolve as linhas para quem comprou o produto.
+ */
 export function Ler() {
   const { slug = '' } = useParams()
   const navigate = useNavigate()
-  const biblio = biblioteca[slug]
+  const meta = bibliotecaMeta[slug]
   const [status, setStatus] = useState<Status>('loading')
+  const [docs, setDocs] = useState<Doc[]>([])
 
   useEffect(() => {
-    if (!biblio) {
+    if (!meta) {
       navigate('/ninho', { replace: true })
       return
     }
@@ -32,22 +41,22 @@ export function Ler() {
         navigate('/ninho', { replace: true })
         return
       }
-      const { data: prod } = await supabase.from('products').select('id').eq('slug', slug).single()
-      if (!prod) {
+      // A RLS libera as linhas só se o usuário tiver o entitlement do produto.
+      const { data } = await supabase
+        .from('deliverables')
+        .select('title, body_md, ord')
+        .eq('product_slug', slug)
+        .order('ord')
+      if (data && data.length > 0) {
+        setDocs(data as Doc[])
+        setStatus('ok')
+      } else {
         setStatus('locked')
-        return
       }
-      const { data: ent } = await supabase
-        .from('entitlements')
-        .select('product_id')
-        .eq('user_id', session.user.id)
-        .eq('product_id', prod.id)
-        .maybeSingle()
-      setStatus(ent ? 'ok' : 'locked')
     })()
   }, [slug])
 
-  if (!biblio) return null
+  if (!meta) return null
 
   if (status === 'loading') {
     return (
@@ -85,8 +94,8 @@ export function Ler() {
           </button>
         </div>
 
-        <h1 className="mt-5 text-center font-headline text-[26px] font-bold text-gold">{biblio.titulo}</h1>
-        <p className="mt-1 text-center text-[13px] text-fog">{biblio.subtitulo}</p>
+        <h1 className="mt-5 text-center font-headline text-[26px] font-bold text-gold">{meta.titulo}</h1>
+        <p className="mt-1 text-center text-[13px] text-fog">{meta.subtitulo}</p>
 
         {slug === 'mapa' && (
           <Link to="/mapa" className="mx-auto mt-4 block w-fit rounded-full border border-gold/40 bg-gold/10 px-4 py-2 text-[13px] font-bold text-gold">
@@ -95,11 +104,11 @@ export function Ler() {
         )}
 
         {/* Índice, quando há mais de um documento */}
-        {biblio.docs.length > 1 && (
+        {docs.length > 1 && (
           <nav className="mt-6 rounded-2xl border border-white/10 bg-night-card p-4">
             <p className="text-[11px] font-bold uppercase tracking-widest text-gold/70">Neste material</p>
             <ol className="mt-2 list-inside list-decimal space-y-1 text-[14px] text-cream">
-              {biblio.docs.map((d, i) => (
+              {docs.map((d, i) => (
                 <li key={i}>
                   <a href={`#doc-${i}`} className="underline underline-offset-2 hover:text-gold">
                     {d.title}
@@ -113,9 +122,9 @@ export function Ler() {
 
       {/* Conteúdo (vai pro PDF) */}
       <div className="print-area mt-6 space-y-6">
-        {biblio.docs.map((d, i) => (
+        {docs.map((d, i) => (
           <section key={i} id={`doc-${i}`} className="rounded-3xl bg-cream p-6 shadow-xl print:rounded-none print:p-0 print:shadow-none">
-            <Markdown md={d.md} />
+            <Markdown md={d.body_md} />
           </section>
         ))}
       </div>

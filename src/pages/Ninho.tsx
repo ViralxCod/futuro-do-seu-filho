@@ -6,7 +6,7 @@ import { supabase, type Product, type Profile } from '../lib/supabase'
 import { Logo } from '../components/Logo'
 import { useFunnel } from '../store'
 import { openCheckout } from '../config'
-import { biblioteca } from '../data/biblioteca'
+import { bibliotecaMeta } from '../data/biblioteca'
 
 export function Ninho() {
   const navigate = useNavigate()
@@ -201,7 +201,7 @@ function Dashboard({ session }: { session: Session }) {
     return (
       <ProductCard key={p.id} title={p.nome} desc={p.descricao} unlocked={has} soon={p.tipo === 'consulta' && !p.checkout_url}>
         {has ? (
-          biblioteca[p.slug] ? (
+          bibliotecaMeta[p.slug] ? (
             <button onClick={() => navigate(`/ninho/ler/${p.slug}`)} className="cta mt-3 py-3 text-[14px]">
               Abrir material + baixar PDF →
             </button>
