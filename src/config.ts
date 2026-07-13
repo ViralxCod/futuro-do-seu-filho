@@ -44,9 +44,9 @@ export const config = {
   gateway: 'kiwify' as Gateway,
 
   checkout: {
-    // Degrau 1 — R$ 19,99: destrava o RESULTADO (o Mapa)
+    // Degrau 1 — R$ 8,75: destrava o RESULTADO (o Mapa)
     mapa: {
-      price: 'R$ 19,99',
+      price: 'R$ 8,75',
       anchorPrice: 'R$ 161',
       url: CHECKOUT_URL_MAPA, // ex.: 'https://pay.kiwify.com.br/XXXXXX'
     },

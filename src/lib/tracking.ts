@@ -64,7 +64,7 @@ export function initPixels() {
 // CAPI). Aqui ficam só os eventos padrão que não representam compra.
 const META_STANDARD: Partial<Record<FunnelEvent, { name: string; params?: Record<string, unknown> }>> = {
   quiz_start: { name: 'Lead' },
-  checkout_1999_iniciado: { name: 'InitiateCheckout', params: { value: 19.99, currency: 'BRL' } },
+  checkout_1999_iniciado: { name: 'InitiateCheckout', params: { value: 8.75, currency: 'BRL' } },
   checkout_completo_iniciado: { name: 'InitiateCheckout', params: { value: 67.55, currency: 'BRL' } },
 }
 
@@ -197,7 +197,7 @@ async function sendCapiPurchase(input: {
  * usamos o preço configurado como fallback.
  */
 export function purchaseFromParams(product: 'mapa' | 'manual' | 'completo', params: URLSearchParams): PurchaseInput {
-  const fallback = product === 'mapa' ? 19.99 : product === 'manual' ? 27.99 : 67.55
+  const fallback = product === 'mapa' ? 8.75 : product === 'manual' ? 27.99 : 67.55
   const raw = params.get('value') ?? params.get('valor') ?? params.get('amount')
   // aceita "27,99" ou "27.99"
   const parsed = raw ? Number(raw.replace(',', '.')) : NaN

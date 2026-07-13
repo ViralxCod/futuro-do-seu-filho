@@ -5,9 +5,9 @@
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
 
 const imagens = [
-  { src: `${BASE}/depoimentos-whatsapp.png`, alt: 'Conversas de mães no WhatsApp agradecendo pelo Mapa e pelo Manual' },
-  { src: `${BASE}/depoimentos-reviews.png`, alt: 'Avaliações 5 estrelas de mães sobre o Manual da Mãe Presente' },
-  { src: `${BASE}/depoimentos-prova-social.png`, alt: 'Depoimentos de mães nas redes sociais sobre O Ninho' },
+  { src: `${BASE}/depoimentos-whatsapp.jpg`, alt: 'Conversas de mães no WhatsApp agradecendo pelo Mapa e pelo Manual' },
+  { src: `${BASE}/depoimentos-reviews.jpg`, alt: 'Avaliações 5 estrelas de mães sobre o Manual da Mãe Presente' },
+  { src: `${BASE}/depoimentos-prova-social.jpg`, alt: 'Depoimentos de mães nas redes sociais sobre O Ninho' },
 ]
 
 export function WhatsAppPrints() {

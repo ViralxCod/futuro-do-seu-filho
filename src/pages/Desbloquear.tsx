@@ -88,7 +88,7 @@ export function Desbloquear() {
       </div>
 
       <button onClick={buy} className="cta mt-6">
-        🔓 VER MEU RESULTADO COMPLETO AGORA — R$ 19,99 →
+        🔓 VER MEU RESULTADO COMPLETO AGORA — {config.checkout.mapa.price} →
       </button>
 
       {/* Garantia Arrepio — ícone SVG limpo, sem emoji */}
@@ -119,7 +119,7 @@ export function Desbloquear() {
       </p>
 
       <button onClick={buy} className="cta mt-6">
-        🔓 DESBLOQUEAR O FUTURO D{g.o.toUpperCase()} {child?.name ? child.name.toUpperCase() : 'MEU FILHO'} — R$ 19,99 →
+        🔓 DESBLOQUEAR O FUTURO D{g.o.toUpperCase()} {child?.name ? child.name.toUpperCase() : 'MEU FILHO'} — {config.checkout.mapa.price} →
       </button>
 
       <h2 className="mt-10 font-headline text-xl font-bold text-gold">Perguntas frequentes</h2>
